@@ -55,16 +55,15 @@ public class WindowsSensors implements Sensors {
         for (String checkLine : data) {
             if (checkLine.length() == 0 || checkLine.toLowerCase().contains(property.toLowerCase())) {
                 continue;
-            } else {
-                // If successful this line is the desired value
-                try {
-                    value = Integer.parseInt(checkLine.trim());
-                } catch (NumberFormatException e) {
-                    // If we failed to parse, give up
-                    value = -1;
-                }
-                break;
             }
+			// If successful this line is the desired value
+			try {
+			    value = Integer.parseInt(checkLine.trim());
+			} catch (NumberFormatException e) {
+			    // If we failed to parse, give up
+			    value = -1;
+			}
+			break;
         }
         return value;
     }

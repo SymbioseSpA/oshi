@@ -108,9 +108,8 @@ public abstract class ParseUtil {
         String[] ss = s.split("\\s+");
         if (ss.length < 2) {
             return i;
-        } else {
-            return Integer.valueOf(ss[ss.length - 1]);
         }
+		return Integer.valueOf(ss[ss.length - 1]);
     }
 
     /**

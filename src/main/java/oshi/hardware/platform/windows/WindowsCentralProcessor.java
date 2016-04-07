@@ -667,10 +667,9 @@ public class WindowsCentralProcessor implements CentralProcessor {
             for (String checkLine : hwInfo) {
                 if (checkLine.length() == 0 || checkLine.toLowerCase().contains("serialnumber")) {
                     continue;
-                } else {
-                    this.cpuSerialNumber = checkLine.trim();
-                    break;
                 }
+				this.cpuSerialNumber = checkLine.trim();
+				break;
             }
             // Just in case the above doesn't
             if (this.cpuSerialNumber == null || this.cpuSerialNumber.length() == 0) {
@@ -678,10 +677,9 @@ public class WindowsCentralProcessor implements CentralProcessor {
                 for (String checkLine : hwInfo) {
                     if (checkLine.length() == 0 || checkLine.toLowerCase().contains("identifyingnumber")) {
                         continue;
-                    } else {
-                        this.cpuSerialNumber = checkLine.trim();
-                        break;
                     }
+					this.cpuSerialNumber = checkLine.trim();
+					break;
                 }
             }
             if (this.cpuSerialNumber == null) {

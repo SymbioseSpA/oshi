@@ -139,7 +139,8 @@ public interface IOKit extends Library {
         public byte[] dataType = new byte[5];
         public byte[] bytes = new byte[32];
 
-        protected List<String> getFieldOrder() {
+        @Override
+		protected List<String> getFieldOrder() {
             return Arrays.asList(new String[] { "key", "dataSize", "dataType", "bytes" });
         }
     }
