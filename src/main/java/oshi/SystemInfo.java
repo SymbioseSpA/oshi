@@ -27,9 +27,7 @@ import oshi.hardware.HardwareAbstractionLayerFactory;
 import oshi.json.NullAwareJsonObjectBuilder;
 import oshi.json.OshiJsonObject;
 import oshi.software.os.OperatingSystem;
-import oshi.software.os.linux.LinuxOperatingSystem;
-import oshi.software.os.mac.MacOperatingSystem;
-import oshi.software.os.windows.WindowsOperatingSystem;
+import oshi.software.os.OperatingSystemFactory;
 
 /**
  * System information. This is the main entry point to Oshi. This object
@@ -45,24 +43,31 @@ public class SystemInfo implements OshiJsonObject {
 
 	private HardwareAbstractionLayer _hardware = null;
 
-	private final PlatformEnum _currentPlatformEnum;
-
 	/**
 	 * Default constructor
 	 */
 	public SystemInfo() {
-		if (Platform.isWindows()) {
-			_currentPlatformEnum = PlatformEnum.WINDOWS;
-		} else if (Platform.isLinux()) {
-			_currentPlatformEnum = PlatformEnum.LINUX;
-		} else if (Platform.isMac()) {
-			_currentPlatformEnum = PlatformEnum.MACOSX;
-		} else {
-			_currentPlatformEnum = PlatformEnum.UNKNOWN;
-		}
+		PlatformEnum currentPlatformEnum = extractPlatform();
+		_os = OperatingSystemFactory.createInstance(currentPlatformEnum);
+		_hardware = HardwareAbstractionLayerFactory
+				.createInstance(currentPlatformEnum);
 	}
 
-	private JsonBuilderFactory jsonFactory = Json.createBuilderFactory(null);
+	/**
+	 * 
+	 * @return value with platform type
+	 * @since 2.3
+	 */
+	private PlatformEnum extractPlatform() {
+		if (Platform.isWindows()) {
+			return PlatformEnum.WINDOWS;
+		} else if (Platform.isLinux()) {
+			return PlatformEnum.LINUX;
+		} else if (Platform.isMac()) {
+			return PlatformEnum.MACOSX;
+		}
+		return PlatformEnum.UNKNOWN;
+	}
 
 	/**
 	 * Creates a new instance of the appropriate platform-specific
@@ -71,23 +76,6 @@ public class SystemInfo implements OshiJsonObject {
 	 * @return A new instance of {@link OperatingSystem}.
 	 */
 	public OperatingSystem getOperatingSystem() {
-		if (_os == null) {
-			switch (_currentPlatformEnum) {
-
-			case WINDOWS:
-				_os = new WindowsOperatingSystem();
-				break;
-			case LINUX:
-				_os = new LinuxOperatingSystem();
-				break;
-			case MACOSX:
-				_os = new MacOperatingSystem();
-				break;
-			default:
-				throw new RuntimeException("Operating system not supported: "
-						+ Platform.getOSType());
-			}
-		}
 		return _os;
 	}
 
@@ -98,15 +86,16 @@ public class SystemInfo implements OshiJsonObject {
 	 * @return A new instance of {@link HardwareAbstractionLayer}.
 	 */
 	public HardwareAbstractionLayer getHardware() {
-		return HardwareAbstractionLayerFactory
-				.createInstance(_currentPlatformEnum);
+		return _hardware;
 	}
 
 	@Override
 	public JsonObject toJSON() {
+		JsonBuilderFactory jsonFactory = Json.createBuilderFactory(null);
+
 		return NullAwareJsonObjectBuilder
 				.wrap(jsonFactory.createObjectBuilder())
-				.add("operatingSystem", getOperatingSystem().toJSON())
-				.add("hardware", getHardware().toJSON()).build();
+				.add("operatingSystem", _os.toJSON())
+				.add("hardware", _hardware.toJSON()).build();
 	}
 }
