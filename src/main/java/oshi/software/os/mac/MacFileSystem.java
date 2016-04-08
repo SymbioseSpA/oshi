@@ -1,13 +1,13 @@
 /**
  * Oshi (https://github.com/dblock/oshi)
- * 
+ *
  * Copyright (c) 2010 - 2016 The Oshi Project Team
- * 
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  * dblock[at]dblock[dot]org
  * alessandro[at]perucchi[dot]org
@@ -41,47 +41,68 @@ import oshi.software.os.OSFileStore;
  */
 public class MacFileSystem {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MacFileSystem.class);
+	private static final String LOCAL_DISK = "Local Disk";
 
-    // Regexp matcher for /dev/disk1 etc.
-    private static final Pattern localDisk = Pattern.compile("/dev/disk\\d");
+	private static final String NETWORK_DRIVE = "Network Drive";
 
-    /**
-     * Gets File System Information.
-     * 
-     * @return An array of {@link OSFileStore} objects representing mounted
-     *         volumes. May return disconnected volumes with
-     *         {@link OSFileStore#getTotalSpace()} = 0.
-     */
-    public static OSFileStore[] getFileStores() {
-        List<OSFileStore> fsList = new ArrayList<>();
-        FileSystemView fsv = FileSystemView.getFileSystemView();
-        // Mac file systems are mounted in /Volumes
-        File volumes = new File("/Volumes");
-        if (volumes.listFiles() != null)
-            for (File f : volumes.listFiles()) {
-                // Everyone hates DS Store
-                if (f.getName().endsWith(".DS_Store")) {
-                    continue;
-                }
-                String name = fsv.getSystemDisplayName(f);
-                String description = "Volume";
-                try {
-                    if (f.getCanonicalPath().equals("/"))
-                        name = name + " (/)";
-                    FileStore fs = Files.getFileStore(f.toPath());
-                    if (localDisk.matcher(fs.name()).matches()) {
-                        description = "Local Disk";
-                    }
-                    if (fs.name().startsWith("localhost:") || fs.name().startsWith("//")) {
-                        description = "Network Drive";
-                    }
-                } catch (IOException e) {
-                    LOG.trace("", e);
-                    continue;
-                }
-                fsList.add(new OSFileStore(name, description, f.getUsableSpace(), f.getTotalSpace()));
-            }
-        return fsList.toArray(new OSFileStore[fsList.size()]);
-    }
+	private static final String OSX_INDEX_STORE = ".DS_Store";
+
+	private static final String VOLUMES_PATH = "/Volumes";
+
+	private static final Logger LOG = LoggerFactory
+			.getLogger(MacFileSystem.class);
+
+	private static final Pattern NETWORK_PATTERN = Pattern
+			.compile("^(?:localhost:|//).*");
+
+	/**
+	 * Regexp matcher for /dev/disk1 etc
+	 */
+	private static final Pattern LOCAL_DISK_PATTERN = Pattern
+			.compile("/dev/disk\\d");
+
+	/**
+	 * Gets File System Information.
+	 * 
+	 * @return An array of {@link OSFileStore} objects representing mounted
+	 *         volumes. May return disconnected volumes with
+	 *         {@link OSFileStore#getTotalSpace()} = 0.
+	 */
+	public static OSFileStore[] getFileStores() {
+		FileSystemView fsv = FileSystemView.getFileSystemView();
+		// Mac file systems are mounted in /Volumes
+		File volumes = new File(VOLUMES_PATH);
+
+		List<OSFileStore> fsList = new ArrayList<>();
+		if (null != volumes.listFiles()) {
+			for (File file : volumes.listFiles()) {
+				// Everyone hates DS Store
+				if (file.getName().endsWith(OSX_INDEX_STORE)) {
+					continue;
+				}
+
+				String name = fsv.getSystemDisplayName(file);
+				String description = "Volume";
+				try {
+					if (File.separator.equals(file.getCanonicalPath())) {
+						name = name + " (/)";
+					}
+					FileStore fs = Files.getFileStore(file.toPath());
+
+					String filename = fs.name();
+					if (LOCAL_DISK_PATTERN.matcher(filename).matches()) {
+						description = LOCAL_DISK;
+					} else if (NETWORK_PATTERN.matcher(filename).matches()) {
+						description = NETWORK_DRIVE;
+					}
+				} catch (IOException e) {
+					LOG.trace("", e);
+					continue;
+				}
+				fsList.add(new OSFileStore(name, description,
+						file.getUsableSpace(), file.getTotalSpace()));
+			}
+		}
+		return fsList.toArray(new OSFileStore[fsList.size()]);
+	}
 }
