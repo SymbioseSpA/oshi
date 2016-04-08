@@ -257,8 +257,6 @@ public class SystemInfoTest {
      *            the arguments
      */
     public static void main(String[] args) {
-        // Options: ERROR > WARN > INFO > DEBUG > TRACE
-        System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "INFO");
         Logger LOG = LoggerFactory.getLogger(SystemInfoTest.class);
 
         LOG.info("Initializing System...");
